@@ -1,16 +1,31 @@
 // bar chart for names and highest level reached
-import React, {Component} from 'react';
-import {Bar, Line, Pie} from 'react-chartjs-2'
+import React, {PureComponent} from 'react';
+import { Bar, Line, Pie } from 'react-chartjs-2'
+import ReactDOM from "react-dom";
+import { ResizeProvider, ResizeConsumer } from "react-resize-context";
+import "./styles.css"
+
 //import * as pluginAnnotation from 'chartjs-plugin-annotation'
 import axios from 'axios'
 
-class HighestLvlChart extends Component{
+class HighestLvlChart extends React.PureComponent{
+    state = {
+        size: {}
+    };
     constructor(){
         super();
         this.state = {
             chartData:null    
         }  
     }
+    getDatasetBySize = size => ({
+        widthRange: size.width > 200 ? "large" : "small",
+        heightRange: size.height > 200 ? "large" : "small"
+    });
+
+    handleSizeChanged = size => {
+        this.setState({ size });
+    };
 
     componentWillMount(){
 
@@ -18,19 +33,25 @@ class HighestLvlChart extends Component{
     }
 
 
+
+
     getChartData(){
         let names = [];
         let rank = [];
         axios.get('http://localhost:4000/app/data').then(res => {
 
-        //console.log(res);
+        console.log(res);
          for (const dataObj of res.data){
             names.push(dataObj.name)
             rank.push((parseInt(dataObj.musical_task_data.highest_level_played))
             
-            )}
-            var mychartData = {  
+                )
+            }
             
+            var mychartData = {  
+                
+
+                animationEnabled: true,
                 labels: names,
                 
                 datasets:[
@@ -54,28 +75,39 @@ class HighestLvlChart extends Component{
                     ]
                 }]
 
+
+           
+
             }
+            
 
             this.setState({chartData:mychartData})
        }).catch(err => {
     
-        //console.log(err);
+        console.log(err);
        })
-       //console.log(names,rank)  
+       console.log(names,rank)  
     }
 
 render(){
     return (
-
-    <div className="chart">
-
-        <Bar
-            data={this.state.chartData}
-
-            options={{ 
-                responsive: true,
-                maintainAspectRatio: true,
+      <ResizeProvider>
+            <ResizeConsumer
+                className="container"
+            >
+             
+            <div className="chart">
                
+
+            <Bar
+                        data={this.state.chartData}
+
+
+                        options={{
+
+                           maintainAspectRatio:false,
+
+
                 title:{
                     display:true,
                     text: "Highest level reached ",
@@ -105,9 +137,12 @@ render(){
                 
             }}
 
-        />
+                    />
+                    
         
-    </div>
+            </div>
+           </ResizeConsumer>
+      </ResizeProvider>
 
 
     )
@@ -116,5 +151,7 @@ render(){
 
 
 }
+const rootElement = document.getElementById("root");
+ReactDOM.render(<HighestLvlChart />, rootElement);
 
 export default HighestLvlChart;
